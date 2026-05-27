@@ -1,0 +1,280 @@
+{% extends 'base.html' %}
+
+{% block css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/typhoid.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<div class="typhoid-card">
+
+    <!-- HEADER -->
+    <div class="card-header">
+        <div class="title">
+            <div class="typhoid-icon">🦠</div>
+            <div>
+                <h2>Typhoid Disease</h2>
+                <p>Infection Risk Assessment</p>
+            </div>
+        </div>
+        <div class="status">● ML Model Active</div>
+    </div>
+
+    <!-- BODY -->
+    <div class="card-body">
+
+        <!-- LEFT -->
+        <div class="form-section">
+            <form id="typhoidForm">
+
+                <div class="grid">
+
+                    <div class="field">
+                        <label>FEVER DURATION</label>
+                        <input name="Fever_Duration" placeholder="1-10">
+                    </div>
+
+                    <div class="field">
+                        <label>ABDOMINAL PAIN</label>
+                        <select name="Abdominal_Pain">
+                            <option value="1">Yes</option>
+                            <option value="0">No</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label>HEADACHE</label>
+                        <select name="Headache">
+                            <option value="1">Yes</option>
+                            <option value="0">No</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label>DIARRHEA</label>
+                        <select name="Diarrhea">
+                            <option value="1">Yes</option>
+                            <option value="0">No</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label>WEAKNESS</label>
+                        <select name="Weakness">
+                            <option value="1">Yes</option>
+                            <option value="0">No</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label>VOMITING</label>
+                        <select name="Vomiting">
+                            <option value="1">Yes</option>
+                            <option value="0">No</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label>WIDAL TEST</label>
+                        <select name="Widal_Test">
+                            <option value="1">Positive</option>
+                            <option value="0">Negative</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label>TYPHIDOT TEST</label>
+                        <select name="Typhidot_Test">
+                            <option value="1">Positive</option>
+                            <option value="0">Negative</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label>WBC COUNT</label>
+                        <input name="WBC_Count" placeholder="4000-12000">
+                    </div>
+
+                    <div class="field">
+                        <label>PLATELET COUNT</label>
+                        <input name="Platelet_Count" placeholder="150000-450000">
+                    </div>
+
+                </div>
+
+                <button type="submit" id="predictBtn" class="predict-btn">
+                    <span id="btnText">🦠 Predict Typhoid Risk</span>
+                </button>
+
+                <button type="button" onclick="clearForm()" class="clear-btn">
+                    Clear Form
+                </button>
+
+            </form>
+        </div>
+
+        <!-- RIGHT -->
+        <div class="result-section">
+
+            <div id="emptyState" class="empty-card">
+                <div class="empty-icon">🦠</div>
+                <p class="empty-title">Typhoid Risk Score</p>
+                <p class="empty-sub">Enter values to see prediction</p>
+            </div>
+
+            <div id="resultContent" class="result-card" style="display:none;">
+
+                <div class="result-header">
+                    <span>TYPHOID ASSESSMENT</span>
+                    <span id="riskBadge" class="risk-pill">LOW</span>
+                </div>
+
+                <div class="result-main">
+                    <div>
+                        <p class="small">Prediction</p>
+                        <h3>Typhoid Infection Risk</h3>
+                    </div>
+
+                    <div class="score-box">
+                        <p class="small">Risk Score</p>
+                        <h1 id="riskPercent">0%</h1>
+                    </div>
+                </div>
+
+                <!-- PROGRESS -->
+                <div class="progress-bar">
+                    <div id="progressBar"></div>
+                </div>
+
+                <div class="progress-labels">
+                    <span>Low</span>
+                    <span>Medium</span>
+                    <span>High</span>
+                </div>
+
+                <!-- SHAP -->
+                <p class="section-title">KEY FACTORS</p>
+                <div id="shapContainer"></div>
+
+                <!-- RECOMMENDATION -->
+                <div class="recommendation">
+                    <p id="recommendationText"></p>
+                </div>
+
+                <button class="save-btn" onclick="downloadReport()">📄 Download Report</button>
+
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<!-- SCRIPT -->
+<script>
+document.getElementById("typhoidForm").addEventListener("submit", async function(e){
+    e.preventDefault();
+
+    const btn = document.getElementById("predictBtn");
+    const text = document.getElementById("btnText");
+
+    btn.disabled = true;
+    text.innerText = "Analyzing...";
+
+    const data = Object.fromEntries(new FormData(this).entries());
+
+    for(let k in data){
+        data[k] = parseFloat(data[k]);
+    }
+
+    try{
+        const res = await fetch("/typhoid_predict",{
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify(data)
+        });
+
+        const out = await res.json();
+
+        document.getElementById("emptyState").style.display="none";
+        document.getElementById("resultContent").style.display="block";
+
+        document.getElementById("riskPercent").innerText = out.percentage + "%";
+        const progress = document.getElementById("progressBar");
+            
+        //  reset first (for animation)
+        progress.style.width = "0%";
+            
+        // small delay so animation triggers
+        setTimeout(() => {
+            progress.style.width = out.percentage + "%";
+        
+            if(out.percentage < 30){
+                progress.style.background = "linear-gradient(90deg,#22c55e,#4ade80)";
+            }
+            else if(out.percentage < 60){
+                progress.style.background = "linear-gradient(90deg,#f59e0b,#fbbf24)";
+            }
+            else{
+                progress.style.background = "linear-gradient(90deg,#ef4444,#f87171)";
+            }
+        
+        }, 100);
+
+        document.getElementById("riskBadge").innerText = out.result;
+        document.getElementById("recommendationText").innerText = out.recommendation;
+
+        // SHAP
+        const container = document.getElementById("shapContainer");
+        container.innerHTML = "";
+
+        const shapEntries = Object.entries(out.shap)
+            .sort((a,b)=>b[1]-a[1])
+            .slice(0,4);
+
+        shapEntries.forEach(([name,value])=>{
+            container.innerHTML += `
+                <div class="factor">
+                    <div class="factor-head">
+                        <span>${name}</span>
+                        <span>${value}%</span>
+                    </div>
+                    <div class="bar">
+                        <div style="width:${value}%"></div>
+                    </div>
+                </div>
+            `;
+        });
+
+    }catch(err){
+        alert("Error connecting backend");
+    }
+
+    btn.disabled = false;
+    text.innerText = "🦠 Predict Typhoid Risk";
+});
+
+function clearForm(){
+    document.getElementById("typhoidForm").reset();
+    document.getElementById("resultContent").style.display="none";
+    document.getElementById("emptyState").style.display="block";
+}
+
+function downloadReport() {
+    const element = document.getElementById("resultContent");
+
+    const opt = {
+        margin: 0.5,
+        filename: "Typhoid_Report.pdf",
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: "in", format: "a4", orientation: "portrait" }
+    };
+
+    html2pdf().set(opt).from(element).save();
+}
+</script>
+
+{% endblock %}

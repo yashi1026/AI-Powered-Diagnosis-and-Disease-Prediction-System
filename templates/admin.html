@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block css %}
+<style>
+.container {
+    padding: 40px;
+}
+
+.title {
+    font-size: 28px;
+    margin-bottom: 20px;
+}
+
+.card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    background: #f5f7fa;
+    padding: 14px;
+    text-align: left;
+}
+
+td {
+    padding: 14px;
+    border-bottom: 1px solid #eee;
+}
+
+tr:hover {
+    background: #fafafa;
+}
+
+/* BADGES */
+.badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.low {
+    background: #e6f7f5;
+    color: #00a884;
+}
+
+.medium {
+    background: #fff4e5;
+    color: #ff9800;
+}
+
+.high {
+    background: #ffe6e6;
+    color: #e53935;
+}
+
+/* DELETE BUTTON */
+.delete-btn {
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: none;
+    background: #e53935;
+    color: white;
+    cursor: pointer;
+}
+
+.delete-btn:hover {
+    background: #c62828;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <div class="title">👑 Admin Dashboard</div>
+
+    <div class="card">
+
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>Date</th>
+                <th>User</th>
+                <th>Disease</th>
+                <th>Risk</th>
+                <th>Score</th>
+                <th>Action</th>
+            </tr>
+
+            {% for row in data %}
+            <tr>
+                <td>{{ row[0] }}</td>
+                <td>{{ row[4] }}</td>
+                <td>{{ row[1] if row[1] else "Guest" }}</td>
+                <td>{{ row[2] }}</td>
+
+                <td>
+                    {% if row[3] < 30 %}
+                        <span class="badge low">Low</span>
+                    {% elif row[3] < 60 %}
+                        <span class="badge medium">Medium</span>
+                    {% else %}
+                        <span class="badge high">High</span>
+                    {% endif %}
+                </td>
+
+                <td>{{ row[3] }}%</td>
+
+                <td>
+                    <button class="delete-btn" onclick="deleteRecord({{ row[0] }})">
+                        Delete
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+
+    </div>
+
+</div>
+
+<script>
+function deleteRecord(id){
+    if(confirm("Delete this record?")){
+        fetch("/delete/" + id, {
+            method: "POST"
+        })
+        .then(() => location.reload());
+    }
+}
+</script>
+
+{% endblock %}

@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+{% block css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/diabetes.css') }}">
+{% endblock %}
+{% block content %}
+
+<div class="main-card">
+<!-- HEADER -->
+<div class="card-header">
+    <div class="title">
+        <span class="icon">💉</span>
+        <div>
+            <h2>Diabetes</h2>
+            <p>Glucose & metabolic risk assessment</p>
+        </div>
+    </div>
+    <div class="model-status">● ML Model Active</div>
+</div>
+
+<!-- BODY -->
+<div class="card-body">
+
+    <!-- LEFT -->
+    <div class="form-box">
+        <form id="diabetesForm">
+
+            <div class="grid">
+
+                <div class="field">
+                    <label>PLASMA GLUCOSE (mg/dL)</label>
+                    <input name="glucose" placeholder="70–140">
+                </div>
+
+                <div class="field">
+                    <label>BMI (kg/m²)</label>
+                    <input name="bmi" placeholder="18.5–24.9">
+                </div>
+
+                <div class="field">
+                    <label>AGE</label>
+                    <input name="age" placeholder="21–80">
+                </div>
+
+                <div class="field">
+                    <label>BLOOD PRESSURE</label>
+                    <input name="bp" placeholder="60–80">
+                </div>
+
+                <div class="field">
+                    <label>INSULIN</label>
+                    <input name="insulin" placeholder="16–166">
+                </div>
+
+                <div class="field">
+                    <label>SKIN THICKNESS</label>
+                    <input name="skin" placeholder="10–40">
+                </div>
+
+                <div class="field">
+                    <label>DPF</label>
+                    <input name="dpf" placeholder="0.08–2.42">
+                </div>
+
+                <div class="field">
+                    <label>PREGNANCIES</label>
+                    <input name="pregnancies" placeholder="0–17">
+                </div>
+
+            </div>
+
+            <button type="submit" id="predictBtn" class="predict-btn">
+                <span id="btnText">⚡ Predict Diabetes Risk</span>
+            </button>
+            <button type="button" onclick="clearForm()" class="clear-btn">Clear</button>
+
+        </form>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="result-section">
+
+        <!-- EMPTY -->
+        <div id="emptyState" class="empty-card">
+            <div class="empty-icon">💉</div>
+            <p class="empty-title">Diabetes Risk Score</p>
+            <p class="empty-sub">Enter values to see prediction</p>
+        </div>
+
+        <!-- RESULT -->
+        <div id="resultContent" class="result-card" style="display:none;">
+
+            <div class="result-header">
+                <span>DIABETES RISK ASSESSMENT</span>
+                <span id="riskBadge" class="risk-pill">LOW RISK</span>
+            </div>
+
+            <div class="result-main">
+                <div>
+                    <p class="small">Predicted Condition</p>
+                    <h3>Type 2 Diabetes Risk</h3>
+                </div>
+
+                <div class="score-box">
+                    <p class="small">Risk Score</p>
+                    <h1 id="riskPercent">0%</h1>
+                </div>
+            </div>
+
+            <div class="progress-bar">
+                <div id="progressBar"></div>
+            </div>
+
+            <div class="progress-labels">
+                <span>Low</span>
+                <span>Medium</span>
+                <span>High</span>
+            </div>
+
+            <p class="section-title">KEY CONTRIBUTING FACTORS (SHAP)</p>
+            <div id="shapContainer"></div>
+
+            <div class="recommendation">
+                <p class="rec-title">RECOMMENDATION</p>
+                <p id="recommendationText">
+                    Enter values to see prediction
+                </p>
+            </div>
+
+            <button class="save-btn" onclick="downloadReport()">📄 Download Report</button>
+
+        </div>
+
+    </div>
+
+</div>
+
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+document.getElementById("diabetesForm").addEventListener("submit", async function(e){
+    e.preventDefault();
+
+    const btn = document.getElementById("predictBtn");
+    const text = document.getElementById("btnText");
+
+    btn.disabled = true;
+    text.innerText = "Analyzing...";
+
+    const data = Object.fromEntries(new FormData(this).entries());
+
+    for(let k in data){
+        data[k] = parseFloat(data[k]);
+    }
+
+    try {
+        const res = await fetch("/diabetes_predict", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+
+        if (!res.ok) {
+            throw new Error("Server error");
+        }
+
+        const out = await res.json();
+
+        if (out.error) {
+            alert(out.error);
+            return;
+        }
+
+        // ✅ SHOW RESULT
+        document.getElementById("emptyState").style.display="none";
+        document.getElementById("resultContent").style.display="block";
+
+        document.getElementById("riskPercent").innerText = out.percentage + "%";
+        document.getElementById("progressBar").style.width = out.percentage + "%";
+        document.getElementById("riskBadge").innerText = out.result;
+        document.getElementById("recommendationText").innerText = out.recommendation;
+
+        // ✅ SHAP 
+        const shapContainer = document.getElementById("shapContainer");
+        shapContainer.innerHTML = "";
+
+        const shapEntries = Object.entries(out.shap || {})
+            .sort((a,b)=>b[1]-a[1])
+            .slice(0,4);
+
+        shapEntries.forEach(([name,value])=>{
+            shapContainer.innerHTML += `
+                <div class="factor">
+                    <div class="factor-head">
+                        <span>${name}</span>
+                        <span>${value}%</span>
+                    </div>
+                    <div class="bar">
+                        <div style="width:${value}%"></div>
+                    </div>
+                </div>
+            `;
+        });
+
+    } catch(err){
+        console.log(err);
+    }
+
+    btn.disabled = false;
+    text.innerText = "⚡ Predict Diabetes Risk";
+});
+
+
+// ===== CLEAR FORM =====
+function clearForm() {
+    const form = document.getElementById("diabetesForm");
+    form.reset();
+
+    document.getElementById("resultContent").style.display = "none";
+    document.getElementById("emptyState").style.display = "block";
+
+    document.getElementById("riskPercent").innerText = "0%";
+    document.getElementById("progressBar").style.width = "0%";
+    document.getElementById("riskBadge").innerText = "LOW RISK";
+
+    document.getElementById("recommendationText").innerText =
+        "Enter values to see prediction";
+
+    document.getElementById("shapContainer").innerHTML = "";
+}
+
+
+// ===== DOWNLOAD PDF =====
+function downloadReport() {
+    const element = document.getElementById("resultContent");
+    html2pdf().from(element).save("Diabetes_Report.pdf");
+}
+</script>
+
+{% endblock %}

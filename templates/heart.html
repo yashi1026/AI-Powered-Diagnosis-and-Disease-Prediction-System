@@ -1,0 +1,302 @@
+{% extends 'base.html' %}
+
+{% block css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/heart.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<div class="heart-card">
+
+    <!-- HEADER -->
+    <div class="card-header">
+        <div class="title">
+            <div class="heart-icon">❤️</div>
+            <div>
+                <h2>Heart Disease</h2>
+                <p>Cardiovascular risk assessment</p>
+            </div>
+        </div>
+        <div class="status">● ML Model Active</div>
+    </div>
+
+    <!-- BODY -->
+    <div class="card-body">
+
+        <!-- LEFT -->
+        <div class="form-section">
+            <form id="heartForm">
+
+                <div class="grid">
+
+                    <div class="field">
+                        <label>AGE (YEARS)</label>
+                        <input name="age" placeholder="25-90">
+                    </div>
+
+                    <div class="field">
+                        <label>SEX</label>
+                        <select name="sex">
+                            <option value="1">Male</option>
+                            <option value="0">Female</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label>CHEST PAIN TYPE</label>
+                        <select name="cp">
+                            <option value="0">Typical Angina</option>
+                            <option value="1">Atypical Angina</option>
+                            <option value="2">Non-anginal</option>
+                            <option value="3">Asymptomatic</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label>RESTING BP (MMHG)</label>
+                        <input name="trestbps" placeholder="90-200">
+                    </div>
+
+                    <div class="field">
+                        <label>CHOLESTEROL (MG/DL)</label>
+                        <input name="chol" placeholder="100-400">
+                    </div>
+
+                    <div class="field">
+                        <label>FASTING BLOOD SUGAR</label>
+                        <select name="fbs">
+                            <option value="1">Yes</option>
+                            <option value="0">No</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label>REST ECG RESULTS</label>
+                        <select name="restecg">
+                            <option value="0">Normal</option>
+                            <option value="1">ST-T abnormality</option>
+                            <option value="2">Hypertrophy</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label>MAX HEART RATE (BPM)</label>
+                        <input name="thalach" placeholder="60-202">
+                    </div>
+
+                    <div class="field">
+                        <label>EXERCISE-INDUCED ANGINA</label>
+                        <select name="exang">
+                            <option value="1">Yes</option>
+                            <option value="0">No</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label>ST DEPRESSION</label>
+                        <input name="oldpeak" placeholder="0.0-6.2">
+                    </div>
+
+                    <div class="field">
+                        <label>SLOPE</label>
+                        <select name="slope">
+                            <option value="0">Upsloping</option>
+                            <option value="1">Flat</option>
+                            <option value="2">Downsloping</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label>MAJOR VESSELS</label>
+                        <select name="ca">
+                            <option value="0">0</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label>THALASSEMIA</label>
+                        <select name="thal">
+                            <option value="1">Normal</option>
+                            <option value="2">Fixed</option>
+                            <option value="3">Reversible</option>
+                        </select>
+                    </div>
+
+                </div>
+
+                <button type="submit" id="predictBtn" class="predict-btn">
+                    <span id="btnText">❤️ Predict Heart Disease Risk</span>
+                </button>
+
+                <button type="button" onclick="clearForm()" class="clear-btn">Clear Form</button>
+
+            </form>
+        </div>
+
+        <!-- RIGHT -->
+        <div class="result-section">
+            
+            <div id="emptyState" class="empty-card">
+                <div class="empty-icon">❤️</div>
+                <p class="empty-title">Heart Disease Risk Score</p>
+                <p class="empty-sub">Enter values to see prediction</p>
+            </div>
+    
+            <div id="resultContent" class="result-card" style="display:none;">
+            
+                <!-- HEADER -->
+                <div class="result-header">
+                    <span>HEART DISEASE ASSESSMENT</span>
+                    <span id="riskBadge" class="risk-pill">LOW RISK</span>
+                </div>
+            
+                <!-- MAIN -->
+                <div class="result-main">
+                    <div>
+                        <p class="small">Predicted Condition</p>
+                        <h3>Coronary Artery Disease Risk</h3>
+                    </div>
+                
+                    <div class="score-box">
+                        <p class="small">Risk Score</p>
+                        <h1 id="riskPercent">0%</h1>
+                    </div>
+                </div>
+            
+                <!-- PROGRESS -->
+                <div class="progress-bar">
+                    <div id="progressBar"></div>
+                </div>
+                <div class="progress-labels">
+                    <span>Low</span>
+                    <span>Medium</span>
+                    <span>High</span>
+                </div>
+            
+                <!-- SHAP -->
+                <p class="section-title">KEY CONTRIBUTING FACTORS (SHAP)</p>
+                <div id="shapContainer"></div>
+                
+                            
+                <!-- RECOMMENDATION -->
+                <div class="recommendation">
+                    <p class="rec-title">RECOMMENDATION</p>
+                    <p id="recommendationText">
+                        Low risk. Continue heart-healthy lifestyle.
+                    </p>
+                </div>
+                <!-- BUTTON -->
+                <button class="save-btn" onclick="downloadReport()">📄 Download Report</button>
+            
+            </div>
+    
+        </div>
+
+    </div>
+</div>
+<!-- PDF LIBRARY -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<!--  SCRIPT  -->
+<script>
+document.getElementById("heartForm").addEventListener("submit", async function(e){
+    e.preventDefault();
+
+    const btn = document.getElementById("predictBtn");
+    const text = document.getElementById("btnText");
+
+    btn.disabled = true;
+    text.innerText = "Analyzing...";
+
+    const data = Object.fromEntries(new FormData(this).entries());
+
+    for(let k in data){
+        data[k] = parseFloat(data[k]);
+    }
+
+    try {
+        const res = await fetch("/heart_predict", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+
+        if (!res.ok) {
+            throw new Error("Server error");
+        }
+
+        const out = await res.json();
+
+        if (out.error) {
+            alert(out.error);
+            return;
+        }
+
+        // show result
+        document.getElementById("emptyState").style.display="none";
+        document.getElementById("resultContent").style.display="block";
+
+        document.getElementById("riskPercent").innerText = out.percentage + "%";
+        document.getElementById("progressBar").style.width = out.percentage + "%";
+        document.getElementById("riskBadge").innerText = out.result;
+        document.getElementById("recommendationText").innerText = out.recommendation;
+
+        // SHAP 
+        const shapContainer = document.getElementById("shapContainer");
+        shapContainer.innerHTML = "";
+
+        const shapEntries = Object.entries(out.shap || {})
+            .sort((a,b)=>b[1]-a[1])
+            .slice(0,4);
+
+        shapEntries.forEach(([name,value])=>{
+            shapContainer.innerHTML += `
+                <div class="factor">
+                    <div class="factor-head">
+                        <span>${name}</span>
+                        <span>${value}%</span>
+                    </div>
+                    <div class="bar">
+                        <div style="width:${value}%"></div>
+                    </div>
+                </div>
+            `;
+        });
+
+    } catch(err){
+        console.log(err);
+    }
+
+    btn.disabled = false;
+    text.innerText = "❤️ Predict Heart Disease Risk";
+});
+
+
+function clearForm() {
+    const form = document.getElementById("heartForm");
+    form.reset();
+
+    document.getElementById("resultContent").style.display = "none";
+    document.getElementById("emptyState").style.display = "block";
+
+    document.getElementById("riskPercent").innerText = "0%";
+    document.getElementById("progressBar").style.width = "0%";
+    document.getElementById("riskBadge").innerText = "LOW RISK";
+
+    document.getElementById("recommendationText").innerText =
+        "Enter values to see prediction";
+
+    document.getElementById("shapContainer").innerHTML = "";
+}
+
+
+function downloadReport() {
+    const element = document.getElementById("resultContent");
+    html2pdf().from(element).save("Heart_Report.pdf");
+}
+</script>
+
+{% endblock %}

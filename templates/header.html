@@ -1,0 +1,54 @@
+<header class="navbar">
+    <div class="nav-container">
+
+        <div class="logo">
+            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="logo">
+            <span>MedPredict</span>
+        </div>
+
+        <nav class="nav-links">
+            <a href="/">Home</a>
+            <a href="/assessment" class="active">Assessment</a>
+        </nav>
+
+        <div class="nav-btns">
+
+            {% if session.get('user_id') or session.get('is_admin') %}
+                
+                <div class="nav-profile">
+                
+                    <a href="{% if session.get('is_admin') %}/admin{% else %}/dashboard{% endif %}" class="profile-link">
+                        
+                        <div class="user-icon">
+                            {% if session.get('is_admin') %}
+                                A
+                            {% else %}
+                                {{ session.get('user_name')[0] }}
+                            {% endif %}
+                        </div>
+                    
+                        <span>
+                            {% if session.get('is_admin') %}
+                                Admin
+                            {% else %}
+                                {{ session.get('user_name') }}
+                            {% endif %}
+                        </span>
+                    
+                    </a>
+                
+                    <a href="/logout" class="logout-btn">Logout</a>
+                
+                </div>
+            
+            {% else %}
+            
+                <a class="signin" href="/signin">Sign In</a>
+                <a class="btn-primary" href="/assessment">Start Assessment</a>
+            
+            {% endif %}
+            
+        </div>
+
+    </div>
+</header>

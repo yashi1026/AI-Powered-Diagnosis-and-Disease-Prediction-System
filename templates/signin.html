@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In | MedPredict{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/signin.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<div class="main">
+
+    <!-- LEFT -->
+    <div class="left">
+        <div class="brand">💚 MedPredict</div>
+
+        <h1>
+            Your health<br>
+            history.<br>
+            <span>Secured.</span>
+        </h1>
+
+        <p>
+            Create an account to save your assessments,
+            track risk changes over time, and receive
+            personalized health insights.
+        </p>
+
+        <!-- FIXED CARDS -->
+        <div class="card">
+            🔒 <b>HIPAA-Compliant Storage</b><br>
+            <small>All data encrypted at rest and in transit</small>
+        </div>
+
+        <div class="card">
+            📊 <b>Assessment History</b><br>
+            <small>Track your risk scores over months</small>
+        </div>
+
+        <div class="card">
+            🤖 <b>AI Explanations</b><br>
+            <small>Understand which factors drive your risk</small>
+        </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right">
+        
+        <h2 id="form-title">Sign in</h2>
+        <p class="sub" id="form-subtitle">Access your health assessment history</p>
+
+        <div class="tabs">
+            <button type="button" id="signin-tab" class="active" onclick="showSignIn()">Sign In</button>
+            <button type="button" id="signup-tab" onclick="showSignUp()">Sign Up</button>
+        </div>
+
+        <form onsubmit="return false;">
+
+            <!-- SIGN IN -->
+            <div id="signin-form">
+
+                <label>EMAIL ADDRESS</label>
+                <input type="email" id="login-email" placeholder="you@example.com">
+
+                <label>PASSWORD</label>
+                <div class="password-box">
+                    <input type="password" id="login-password" placeholder="Minimum 8 characters">
+                    <span onclick="togglePassword('login-password', this)">👁</span>
+                </div>
+
+                <a class="forgot">Forgot password?</a>
+
+                <button type="button" class="signin-btn" onclick="login()">Sign In</button>
+
+                <div class="divider">or continue as</div>
+
+                <button type="button" class="guest-btn" onclick="continueAsGuest()">
+                    ⚡  Continue Without Account
+                </button>
+
+                <div class="privacy">
+                    🔒 <b>Privacy First:</b> We use AES-256 encryption for all stored health data.
+                    Your information is never sold or shared with third parties.
+                </div>
+            </div>
+
+            <!-- SIGN UP -->
+            <div id="signup-form" style="display:none;">
+
+                <label>FULL NAME</label>
+                <input type="text" id="signup-name" placeholder="Emily Carter">
+
+                <label>EMAIL ADDRESS</label>
+                <input type="email" id="signup-email" placeholder="you@example.com">
+
+                <label>PASSWORD</label>
+                <div class="password-box">
+                    <input type="password" id="signup-password" placeholder="Minimum 8 characters">
+                    <span onclick="togglePassword('signup-password', this)">👁</span>
+                </div>
+
+                <label>CONFIRM PASSWORD</label>
+                <input type="password" id="confirm-password" placeholder="Re-enter password">
+
+                <button type="button" class="signin-btn" onclick="signup()">Create Account</button>
+
+                <!-- TERMS TEXT -->
+                <p style="font-size:12px; margin-top:15px; color:#777;">
+                    By creating an account, you agree to our 
+                    <span style="color:#00a884;">Terms of Service</span> and 
+                    <span style="color:#00a884;">Privacy Policy</span>.
+                    Your health data is encrypted and never shared.
+                </p>
+
+                <div class="divider">or continue as</div>
+
+                <button type="button" class="guest-btn" onclick="continueAsGuest()">
+                    ⚡  Continue Without Account
+                </button>
+
+                <div class="privacy">
+                    🔒 <b>Privacy First:</b> We use AES-256 encryption for all stored health data.
+                    Your information is never sold or shared with third parties.
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block script %}
+<script>
+function showSignIn() {
+    document.getElementById("signin-form").style.display = "block";
+    document.getElementById("signup-form").style.display = "none";
+
+    document.getElementById("signin-tab").classList.add("active");
+    document.getElementById("signup-tab").classList.remove("active");
+
+    const title = document.getElementById("form-title");
+    const subtitle = document.getElementById("form-subtitle");
+
+    title.textContent = "Sign in";
+    subtitle.textContent = "Access your health assessment history";
+}
+
+function showSignUp() {
+    document.getElementById("signin-form").style.display = "none";
+    document.getElementById("signup-form").style.display = "block";
+
+    document.getElementById("signup-tab").classList.add("active");
+    document.getElementById("signin-tab").classList.remove("active");
+
+    const title = document.getElementById("form-title");
+    const subtitle = document.getElementById("form-subtitle");
+
+    title.textContent = "Create account";
+    subtitle.textContent = "Start tracking your health risk scores";
+}
+
+
+function login() {
+    fetch('/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            email: document.getElementById('login-email').value,
+            password: document.getElementById('login-password').value
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+
+        if(data.success){
+            window.location.href = data.redirect; 
+        }
+    });
+}
+
+function signup() {
+    let password = document.getElementById('signup-password').value;
+    let confirm = document.getElementById('confirm-password').value;
+
+    if(password !== confirm){
+        alert("Passwords do not match!");
+        return;
+    }
+
+    fetch('/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            name: document.getElementById('signup-name').value,
+            email: document.getElementById('signup-email').value,
+            password: password
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+        if(data.success){
+            showSignIn();
+        }
+    });
+}
+function togglePassword(inputId, icon) {
+    let input = document.getElementById(inputId);
+
+    if (input.type === "password") {
+        input.type = "text";
+        icon.innerText = "🙈"; 
+    } else {
+        input.type = "password";
+        icon.innerText = "👁";
+    }
+}
+function continueAsGuest() {
+    window.location.href = "/assessment";
+}
+</script>
+{% endblock %}

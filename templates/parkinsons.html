@@ -1,0 +1,277 @@
+{% extends 'base.html' %}
+
+{% block css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/parkinsons.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<div class="heart-card">
+
+    <!-- HEADER -->
+    <div class="card-header">
+        <div class="title">
+            <div class="heart-icon">🧠</div>
+            <div>
+                <h3>Parkinson’s Disease Prediction</h3>
+                <p>Voice-based neurological analysis</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- BODY -->
+    <div class="card-body">
+
+        <!-- LEFT FORM -->
+        <div>
+            <form id="parkinsonsForm">
+
+                <div class="grid">
+
+                    <div class="field"><label>Fo (Hz)</label><input type="number" name="fo"></div>
+                    <div class="field"><label>Fhi (Hz)</label><input type="number" name="fhi"></div>
+                    <div class="field"><label>Flo (Hz)</label><input type="number" name="flo"></div>
+
+                    <div class="field"><label>Jitter (%)</label><input type="number" name="jitter"></div>
+                    <div class="field"><label>Jitter Abs</label><input type="number" name="jitter_abs"></div>
+                    <div class="field"><label>RAP</label><input type="number" name="rap"></div>
+
+                    <div class="field"><label>PPQ</label><input type="number" name="ppq"></div>
+                    <div class="field"><label>DDP</label><input type="number" name="ddp"></div>
+
+                    <div class="field"><label>Shimmer</label><input type="number" name="shimmer"></div>
+                    <div class="field"><label>Shimmer (dB)</label><input type="number" name="shimmer_db"></div>
+
+                    <div class="field"><label>APQ3</label><input type="number" name="apq3"></div>
+                    <div class="field"><label>APQ5</label><input type="number" name="apq5"></div>
+
+                    <div class="field"><label>APQ</label><input type="number" name="apq"></div>
+                    <div class="field"><label>DDA</label><input type="number" name="dda"></div>
+
+                    <div class="field"><label>NHR</label><input type="number" name="nhr"></div>
+                    <div class="field"><label>HNR</label><input type="number" name="hnr"></div>
+
+                    <div class="field"><label>RPDE</label><input type="number" name="rpde"></div>
+                    <div class="field"><label>DFA</label><input type="number" name="dfa"></div>
+
+                    <div class="field"><label>Spread1</label><input type="number" name="spread1"></div>
+                    <div class="field"><label>Spread2</label><input type="number" name="spread2"></div>
+
+                    <div class="field"><label>D2</label><input type="number" name="d2"></div>
+                    <div class="field"><label>PPE</label><input type="number" name="ppe"></div>
+
+                </div>
+
+                <button type="button" class="predict-btn" onclick="predictParkinson()">Predict</button>
+                <button type="button" class="clear-btn" onclick="clearForm()">Clear</button>
+
+            </form>
+        </div>
+
+        <div class="result-section">
+
+            <!-- EMPTY -->
+            <div id="emptyState" class="empty-card">
+                <div class="empty-icon">🧠</div>
+                <p>Enter values to see prediction</p>
+            </div>
+        
+            <!-- RESULT -->
+            <div id="resultContent" class="result-card" style="display:none;">
+
+                <!-- HEADER -->
+                <div class="result-header">
+                    <span>PARKINSON'S ANALYSIS</span>
+                    <span id="riskBadge" class="risk-pill low">LOW</span>
+                </div>
+            
+                <!-- MAIN -->
+                <div class="result-main">
+
+                    <!-- LEFT TEXT -->
+                    <div>
+                        <p class="small">Predicted Condition</p>
+                        <h3 id="predictionText">Neurological Risk</h3>
+                    </div>
+                
+                    <!-- RIGHT SCORE -->
+                    <div class="score-box">
+                        <p class="small">Risk Score</p>
+                        <h1 id="riskPercent">0%</h1>
+                    </div>
+                
+                </div>
+            
+                <!-- PROGRESS -->
+                <div class="progress-bar">
+                    <div id="progressBar" style="width:0%"></div>
+                </div>
+            
+                <div class="progress-labels">
+                    <span>Low</span>
+                    <span>Medium</span>
+                    <span>High</span>
+                </div>
+            
+                <!-- SHAP -->
+                <p class="section-title">KEY FACTORS</p>
+                <div id="factorContainer"></div>
+            
+                <!-- RECOMMENDATION -->
+                <div class="recommendation">
+                    <p id="recommendationText">Enter values to analyze risk</p>
+                </div>
+                <button class="save-btn" onclick="downloadReport()">📄 Download Report</button>
+            
+            </div>
+        
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block script %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+function predictParkinson() {
+    let form = document.getElementById("parkinsonsForm");
+    let formData = new FormData(form);
+
+    fetch("/parkinsons_predict", {
+        method: "POST",
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        console.log("API RESPONSE:", data);
+
+        if (data.error) {
+            alert("Error: " + data.error);
+            return;
+        }
+
+        // =========================
+        // SHOW RESULT
+        // =========================
+        document.getElementById("emptyState").style.display = "none";
+        document.getElementById("resultContent").style.display = "block";
+
+        document.getElementById("predictionText").innerText =
+            data.prediction || "No result";
+
+        let percent = parseFloat(data.confidence);
+        if (isNaN(percent)) percent = 0;
+
+        document.getElementById("riskPercent").innerText =
+            percent.toFixed(2) + "%";
+
+        // =========================
+        //  PROGRESS BAR (PREMIUM)
+        // =========================
+        let bar = document.getElementById("progressBar");
+
+        // reset animation first
+        bar.style.animation = "none";
+        bar.style.width = "0%";
+
+        // trigger animation reflow
+        setTimeout(() => {
+            bar.style.width = percent + "%";
+
+            // dynamic color
+            if (percent >= 75) {
+                bar.style.background = "linear-gradient(90deg,#dc2626,#ef4444)";
+            }
+            else if (percent >= 45) {
+                bar.style.background = "linear-gradient(90deg,#f59e0b,#facc15)";
+            }
+            else {
+                bar.style.background = "linear-gradient(90deg,#16a34a,#22c55e)";
+            }
+        }, 100);
+
+        // =========================
+        // BADGE
+        // =========================
+        let badge = document.getElementById("riskBadge");
+
+        if (percent >= 70) {
+            badge.innerText = "HIGH";
+            badge.className = "risk-pill high";
+        } else if (percent >= 40) {
+            badge.innerText = "MEDIUM";
+            badge.className = "risk-pill medium";
+        } else {
+            badge.innerText = "LOW";
+            badge.className = "risk-pill low";
+        }
+
+        // =========================
+        // RECOMMENDATION
+        // =========================
+        document.getElementById("recommendationText").innerText =
+            percent > 70 ? "Consult neurologist immediately"
+            : percent > 40 ? "Monitor symptoms"
+            : "Low risk";
+
+        // =========================
+        // SHAP (COLOR BASED)
+        // =========================
+        let container = document.getElementById("factorContainer");
+        container.innerHTML = "";
+
+        if (!data.shap || Object.keys(data.shap).length === 0) {
+            container.innerHTML = "<p>No factors available</p>";
+            return;
+        }
+
+        let sorted = Object.entries(data.shap)
+            .sort((a,b)=>b[1].value - a[1].value);
+
+        sorted.forEach(([name,obj])=>{
+
+            let value = obj.value;
+            let impact = obj.impact;
+
+            let colorClass = impact === "positive" ? "red-bar" : "blue-bar";
+
+            container.innerHTML += `
+                <div class="factor">
+                    <div class="factor-head">
+                        <span>${name}</span>
+                        <span>${value}%</span>
+                    </div>
+                    <div class="bar">
+                        <div class="${colorClass}" style="width:${value}%"></div>
+                    </div>
+                </div>
+            `;
+        });
+
+    })
+    .catch(err => {
+        console.error("Fetch error:", err);
+        alert("Something went wrong. Check console.");
+    });
+}
+
+function downloadReport() {
+    const element = document.getElementById("resultContent");
+
+    const opt = {
+        margin: 0.5,
+        filename: 'Parkinson_Report.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(element).save();
+}
+</script>
+
+{% endblock %}

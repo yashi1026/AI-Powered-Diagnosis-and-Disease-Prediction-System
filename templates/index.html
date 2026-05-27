@@ -1,0 +1,587 @@
+{% extends 'base.html' %}
+
+{% block css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<!-- HERO -->
+<section class="hero">
+
+    <!-- LEFT -->
+    <div class="hero-left">
+
+        <span class="tag">
+            <span class="dot"></span>
+            AI POWERED HEALTH SCREENING
+        </span>
+
+        <h1>
+            Know Your Risk.<br>
+            Before Symptoms<br>
+            Speak.
+        </h1>
+
+        <p class="hero-desc">
+            Enter your medical values and receive ML-powered risk scores for diabetes,
+            heart disease, and liver conditions — in under 30 seconds.
+        </p>
+
+        <div class="hero-buttons">
+            <a href="/assessment" class="btn-primary">Start Free Assessment →</a>
+            <a href="/signin" class="btn-secondary">Create Account</a>
+        </div>
+
+        <div class="hero-stats-inline">
+            <span>🎯 94.2% Accuracy</span>
+            <span>🔒 HIPAA Compliant</span>
+            <span>✓ Free to Use</span>
+        </div>
+
+        <!--  ANIMATED IMAGES -->
+        <div class="hero-visuals">
+            <img src="{{ url_for('static', filename='img/shield.png') }}" class="float1">
+            <img src="{{ url_for('static', filename='img/chart.png') }}" class="float2">
+        </div>
+
+    </div>
+
+    <!-- CENTER CHATBOT -->
+    <div class="chatbot">
+
+        <div class="chat-header">
+            🤖 AI Health Assistant
+            <span class="online">● Online</span>
+        </div>
+
+        <div class="chat-body">
+
+            <div class="msg bot">
+                Hello! I'm your AI health assistant.<br>
+                Tell me your symptoms and I’ll help assess possible conditions.
+            </div>
+
+            <div class="msg user">
+                I have been feeling very tired and have frequent headaches.
+            </div>
+
+            <div class="msg bot">
+                Any other symptoms like fever, dizziness, or body pain?
+            </div>
+
+        </div>
+
+        <div class="chat-input">
+            <input type="text" placeholder="Describe your symptoms...">
+            <button>➤</button>
+        </div>
+
+    </div>
+
+    <!-- RIGHT CARDS -->
+    <div class="hero-right">
+
+        <div class="float-card">
+            <div class="card-top">
+                <p>DIABETES RISK</p>
+                <span class="badge low">LOW</span>
+            </div>
+            <h2 class="green">34%</h2>
+            <div class="progress-bar green-bar"><div style="width:34%"></div></div>
+            <ul>
+                <li>Glucose 98</li>
+                <li>BMI 22.4</li>
+                <li>Age 31</li>
+            </ul>
+        </div>
+
+        <div class="float-card">
+            <div class="card-top">
+                <p>HEART DISEASE</p>
+                <span class="badge high">HIGH</span>
+            </div>
+            <h2 class="red">71%</h2>
+            <div class="progress-bar red-bar"><div style="width:71%"></div></div>
+            <ul>
+                <li>Cholesterol 248</li>
+                <li>BP 145/90</li>
+                <li>Age 54</li>
+            </ul>
+        </div>
+
+        <div class="float-card">
+            <div class="card-top">
+                <p>LIVER FUNCTION</p>
+                <span class="badge low">LOW</span>
+            </div>
+            <h2 class="green">18%</h2>
+            <div class="progress-bar green-bar"><div style="width:18%"></div></div>
+            <ul>
+                <li>ALT 45</li>
+                <li>AST 52</li>
+                <li>Total Bilirubin 1.8mg/dL</li>
+            </ul>
+        </div>
+
+        <div class="float-card">
+            <div class="card-top">
+                <p>TYPHOID RISK</p>
+                <span class="badge medium">MEDIUM</span>
+            </div>
+            <h2 class="orange">52%</h2>
+            <div class="progress-bar orange-bar"><div style="width:52%"></div></div>
+            <ul>
+                <li>Fever 6 days</li>
+                <li>Widal Positive</li>
+                <li>WBC 3,800</li>
+            </ul>
+        </div>
+
+        <div class="float-card">
+            <div class="card-top">
+                <p>PARKINSONS</p>
+                <span class="badge low">LOW</span>
+            </div>
+            <h2 class="green">22%</h2>
+            <div class="progress-bar green-bar"><div style="width:22%"></div></div>
+            <ul>
+                <li>Jitter 0.004</li>
+                <li>Shimmer 0.03</li>
+                <li>HNR 22.5</li>
+            </ul>
+        </div>
+
+    </div>
+
+</section>
+
+<!-- STATS -->
+<section class="stats-bar">
+
+    <div class="stat-box">
+        <p class="stat-label">MODEL ACCURACY</p>
+        <h2>94.2<span>%</span></h2>
+        <p class="stat-sub">Across all 3 disease models</p>
+    </div>
+
+    <div class="stat-box">
+        <p class="stat-label">ASSESSMENTS RUN</p>
+        <h2>50K<span>+</span></h2>
+        <p class="stat-sub">Since launch in Jan 2025</p>
+    </div>
+
+    <div class="stat-box">
+        <p class="stat-label">TIME TO RESULT</p>
+        <h2>&lt; 30<span>s</span></h2>
+        <p class="stat-sub">From input to full report</p>
+    </div>
+
+    <div class="stat-box">
+        <p class="stat-label">DISEASE MODELS</p>
+        <h2>5</h2>
+        <p class="stat-sub">Diabetes · Heart · Liver · Typhoid · Parkinsons</p>
+    </div>
+
+</section>
+
+<!-- DISEASE SECTION -->
+<section class="disease">
+
+    <div class="section-header">
+        <p class="section-tag">DISEASE COVERAGE</p>
+
+        <h2>
+            Five models.<br>
+            <span class="gradient">One platform.</span>
+        </h2>
+
+        <p class="section-desc">
+            Each model is independently trained on validated clinical datasets and continuously evaluated.
+        </p>
+    </div>
+
+    <div class="bento-grid">
+
+        <!-- DIABETES -->
+        <div class="card diabetes">
+            <div class="card-image img1"></div>
+
+            <div class="card-body">
+                <div class="card-top">
+                    <span class="dataset">PIMA DIABETES DATASET · LOGISTIC REGRESSION + XGBOOST</span>
+                    <span class="accuracy green">93.1% acc.</span>
+                </div>
+
+                <h3>Diabetes Risk</h3>
+
+                <p>
+                    Assess your risk for Type 2 diabetes using glucose levels, BMI, insulin resistance markers,
+                    and family history indicators. Our model achieves 93.1% accuracy.
+                </p>
+
+                <div class="chips">
+                    <span>Glucose Level</span>
+                    <span>BMI Index</span>
+                    <span>Insulin (µU/mL)</span>
+                    <span>Blood Pressure</span>
+                    <span>Age</span>
+                    <span>Skin Thickness</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- HEART -->
+        <div class="card heart">
+            <div class="card-image img2"></div>
+
+            <div class="card-body">
+                <div class="card-top">
+                    <span class="dataset red-text">UCI HEART DISEASE DATASET · RANDOM FOREST</span>
+                    <span class="accuracy red">95.4% acc.</span>
+                </div>
+
+                <h3>Heart Disease</h3>
+
+                <p>
+                    Evaluate cardiovascular risk using chest pain classification, cholesterol panels,
+                    resting ECG data, and exercise-induced angina patterns.
+                </p>
+
+                <div class="chips">
+                    <span>Chest Pain Type</span>
+                    <span>Cholesterol (mg/dL)</span>
+                    <span>Resting BP</span>
+                    <span>Max Heart Rate</span>
+                    <span>ST Depression</span>
+                    <span>Thal Type</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- LIVER -->
+        <div class="card liver">
+            <div class="card-image img3"></div>
+
+            <div class="card-body">
+                <div class="card-top">
+                    <span class="dataset orange-text">INDIAN LIVER PATIENT DATASET · SVM + RANDOM FOREST</span>
+                    <span class="accuracy orange">91.8% acc.</span>
+                </div>
+
+                <h3>Liver Health</h3>
+
+                <p>
+                    Screen for liver disease risk using bilirubin levels, enzyme panels (ALT, AST),
+                    and albumin-to-protein ratios from routine lab work.
+                </p>
+
+                <div class="chips">
+                    <span>Total Bilirubin</span>
+                    <span>Direct Bilirubin</span>
+                    <span>Alkaline Phosphatase</span>
+                    <span>ALT / AST</span>
+                    <span>Albumin</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Parkinsons -->
+        
+        <div class="card parkinsons">
+            <div class="card-image img4"></div>
+        
+            <div class="card-body">
+                <div class="card-top">
+                    <span class="dataset purple-text">
+                        PARKINSON'S DISEASE DATASET · SVM + XGBOOST
+                    </span>
+                    <span class="accuracy purple">94.2% acc.</span>
+                </div>
+            
+                <h3>Parkinson’s Disease</h3>
+            
+                <p>
+                    Detect risk of Parkinson’s disease using voice signal measurements and motor
+                    function indicators. Our model achieves 94.2% accuracy.
+                </p>
+            
+                <div class="chips">
+                    <span>MDVP:Fo(Hz)</span>
+                    <span>Jitter (%)</span>
+                    <span>Shimmer</span>
+                    <span>HNR</span>
+                    <span>RPDE</span>
+                    <span>DFA</span>
+                    <span>Spread1</span>
+                    <span>Spread2</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</section>
+
+<!-- STEPS -->
+<section class="steps">
+
+    <p class="section-tag">HOW IT WORKS</p>
+    <h2>Results in three steps.</h2>
+
+    <div class="steps-grid">
+
+        <!-- STEP 1 -->
+        <div class="step-card">
+
+            <div class="step-header">
+                <div class="icon green-bg">📋</div>
+                <div>
+                    <span class="step-label">STEP 01</span>
+                    <h3>Select Your Test</h3>
+                </div>
+            </div>
+
+            <div class="inner-box">
+
+                <p class="mini-title">SELECT ASSESSMENT</p>
+
+                <div class="option">⚪ Symptom Checker</div>
+
+                <div class="option selected">
+                    🟢 Diabetes Risk
+                    <span class="badge">Selected</span>
+                </div>
+
+                <div class="option">⚪ Heart Disease</div>
+                <div class="option">⚪ Liver Function</div>
+
+            </div>
+
+            <p class="desc">
+                Choose from Symptom Checker, Diabetes, Heart Disease, or Liver Function assessment.
+                Each form is optimized for its specific ML model.
+            </p>
+
+            <div class="footer-tag green">
+                ✔ Takes 2 minutes to complete
+            </div>
+
+        </div>
+
+
+        <!-- STEP 2 -->
+        <div class="step-card">
+
+            <div class="step-header">
+                <div class="icon blue-bg">✏️</div>
+                <div>
+                    <span class="step-label">STEP 02</span>
+                    <h3>Enter Medical Values</h3>
+                </div>
+            </div>
+
+            <div class="inner-box">
+
+                <p class="mini-title">DIABETES FORM</p>
+
+                <div class="field warning">
+                    <label>Glucose (mg/dL)</label>
+                    <div class="value">126 <span>⚠ Above range</span></div>
+                </div>
+
+                <div class="field success">
+                    <label>BMI</label>
+                    <div class="value">27.3 <span>✔ Normal</span></div>
+                </div>
+
+                <div class="field success">
+                    <label>Age</label>
+                    <div class="value">45 <span>✔ Normal</span></div>
+                </div>
+
+            </div>
+
+            <p class="desc">
+                Input your lab results or answer symptom questions.
+                All fields include reference ranges and tooltips.
+            </p>
+
+            <div class="footer-tag blue">
+                ✔ Values auto-validated in real time
+            </div>
+
+        </div>
+
+
+        <!-- STEP 3 -->
+        <div class="step-card">
+
+            <div class="step-header">
+                <div class="icon green-bg">💚</div>
+                <div>
+                    <span class="step-label">STEP 03</span>
+                    <h3>Get Instant Results</h3>
+                </div>
+            </div>
+
+            <div class="inner-box">
+
+                <div class="result-header">
+                    <p>RISK RESULT</p>
+                    <span class="badge orange">MEDIUM</span>
+                </div>
+
+                <h1 class="score">58%</h1>
+                <p class="sub">Diabetes Risk Score</p>
+
+                <!-- BARS -->
+                <div class="bar">
+                    <span>Glucose Level</span>
+                    <div class="progress"><div style="width:78%"></div></div>
+                </div>
+
+                <div class="bar">
+                    <span>BMI</span>
+                    <div class="progress"><div style="width:52%"></div></div>
+                </div>
+
+                <div class="bar">
+                    <span>Age</span>
+                    <div class="progress"><div style="width:34%"></div></div>
+                </div>
+
+            </div>
+
+            <p class="desc">
+                Receive a probability-based risk score with explainable AI factors
+                showing exactly which values drive the prediction.
+            </p>
+
+            <div class="footer-tag green">
+                ✔ Powered by SHAP explainability
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<section class="feedback">
+
+    <div class="feedback-header">
+        <p class="feedback-tag">PATIENT STORIES</p>
+
+        <h2>
+            Early detection.<br>
+            <span>Real outcomes.</span>
+        </h2>
+
+        <div class="underline"></div>
+    </div>
+    <div class="feedback-grid">
+
+        <!-- CARD 1 -->
+        <div class="feedback-card">
+
+            <div class="stars">★★★★★</div>
+
+            <p class="feedback-text">
+                “MedPredict flagged my glucose and BMI combination as moderate-risk
+                8 months before my doctor diagnosed pre-diabetes. I adjusted my diet
+                immediately and avoided full onset.”
+            </p>
+
+            <div class="tag-pill yellow">
+                ● Diabetes — Medium Risk
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="user">
+                <img src="{{ url_for('static', filename='img/sam.jpg') }}">
+                <div>
+                    <strong>Samrita</strong>
+                    <span>Influencer</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- CARD 2 -->
+        <div class="feedback-card">
+
+            <div class="stars">★★★★★</div>
+
+            <p class="feedback-text">
+                “My cholesterol was borderline and I had no symptoms.
+                MedPredict's heart model gave me a 68% risk score and identified
+                ST depression as the main driver. I got an echocardiogram the next week.”
+            </p>
+
+            <div class="tag-pill red">
+                ● Heart Disease — High Risk
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="user">
+                <img src="{{ url_for('static', filename='img/harshit.png') }}">
+                <div>
+                    <strong>Harshit Kamra</strong>
+                    <span>Software Engineer TCS, Lucknow</span>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <p class="feedback-footnote">
+        Individual results may vary. MedPredict is a screening tool and does not replace professional medical diagnosis.
+    </p>
+
+</section>
+
+
+<!-- CTA -->
+<section class="cta-section">
+
+    <div class="cta-box">
+
+        <div class="cta-badge">
+            FREE · NO CREDIT CARD REQUIRED
+        </div>
+
+        <h2>
+            Your health data<br>
+            deserves intelligent<br>
+            <span>analysis.</span>
+        </h2>
+
+        <p class="cta-desc">
+            Run a complete 3-disease risk assessment in under 2 minutes.
+            No appointment. No waiting room. Just answers.
+        </p>
+
+        <div class="cta-buttons">
+            <a href="/assessment" class="cta-btn primary">
+                Begin Assessment Now →
+            </a>
+
+            <a href="/signin" class="cta-btn secondary">
+                Create Free Account
+            </a>
+        </div>
+
+        <p class="cta-footnote">
+            For informational purposes only. Always consult a licensed physician for medical decisions.
+        </p>
+
+    </div>
+
+</section>
+
+{% endblock %}

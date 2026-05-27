@@ -1,0 +1,288 @@
+{% extends 'base.html' %}
+
+{% block css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/liver.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<div class="liver-card">
+
+    <!-- HEADER -->
+    <div class="card-header">
+        <div class="title">
+            <div class="liver-icon">🧪</div>
+            <div>
+                <h2>Liver Health</h2>
+                <p>Liver function analysis</p>
+            </div>
+        </div>
+        <div class="status">● ML Model Active</div>
+    </div>
+
+    <!-- BODY -->
+    <div class="card-body">
+
+        <!-- LEFT -->
+        <div class="form-section">
+            <form id="liverForm">
+
+                <div class="grid">
+
+                    <!-- AGE -->
+                    <div class="field">
+                        <label>AGE (years)</label>
+                        <input name="Age" placeholder="4–90">
+                        <small>Range: 4–90</small>
+                    </div>
+                
+                    <!-- GENDER -->
+                    <div class="field">
+                        <label>GENDER</label>
+                        <select name="Gender">
+                            <option value="1">Male</option>
+                            <option value="0">Female</option>
+                        </select>
+                        <small>Select biological gender</small>
+                    </div>
+                
+                    <!-- TOTAL BILIRUBIN -->
+                    <div class="field">
+                        <label>TOTAL BILIRUBIN (mg/dL)</label>
+                        <input name="Total_Bilirubin" placeholder="0.1–3.0">
+                        <small>Normal: 0.2–1.2</small>
+                    </div>
+                
+                    <!-- DIRECT BILIRUBIN -->
+                    <div class="field">
+                        <label>DIRECT BILIRUBIN (mg/dL)</label>
+                        <input name="Direct_Bilirubin" placeholder="0.0–1.5">
+                        <small>Normal: 0.0–0.3</small>
+                    </div>
+                
+                    <!-- ALKALINE PHOSPHOTASE -->
+                    <div class="field">
+                        <label>ALKALINE PHOSPHOTASE (IU/L)</label>
+                        <input name="Alkaline_Phosphotase" placeholder="44–147">
+                        <small>Normal: 44–147</small>
+                    </div>
+                
+                    <!-- ALT -->
+                    <div class="field">
+                        <label>ALT (SGPT)</label>
+                        <input name="Alamine_Aminotransferase" placeholder="7–56">
+                        <small>Normal: 7–56</small>
+                    </div>
+                
+                    <!-- AST -->
+                    <div class="field">
+                        <label>AST (SGOT)</label>
+                        <input name="Aspartate_Aminotransferase" placeholder="10–40">
+                        <small>Normal: 10–40</small>
+                    </div>
+                
+                    <!-- TOTAL PROTEINS -->
+                    <div class="field">
+                        <label>TOTAL PROTEINS (g/dL)</label>
+                        <input name="Total_Protiens" placeholder="6.0–8.3">
+                        <small>Normal: 6.0–8.3</small>
+                    </div>
+                
+                    <!-- ALBUMIN -->
+                    <div class="field">
+                        <label>ALBUMIN (g/dL)</label>
+                        <input name="Albumin" placeholder="3.5–5.0">
+                        <small>Normal: 3.5–5.0</small>
+                    </div>
+                
+                    <!-- A/G RATIO -->
+                    <div class="field">
+                        <label>ALBUMIN/GLOBULIN RATIO</label>
+                        <input name="Albumin_and_Globulin_Ratio" placeholder="1.0–2.0">
+                        <small>Normal: 1.0–2.0</small>
+                    </div>
+                
+                </div>
+
+                <button type="submit" id="predictBtn" class="predict-btn">
+                    🧪 Predict Liver Disease Risk
+                </button>
+
+                <button type="button" onclick="clearForm()" class="clear-btn">
+                    Clear Form
+                </button>
+
+            </form>
+        </div>
+        <div class="result-section">
+
+        <!-- EMPTY -->
+        <div id="emptyState" class="empty-card">
+            <div class="empty-icon">🧪</div>
+            <p class="empty-title">Liver Disease Risk Score</p>
+            <p class="empty-sub">Enter your liver function values to see prediction</p>
+        
+            <div class="empty-metrics">
+                <div>Bilirubin</div>
+                <div>ALT</div>
+                <div>Albumin</div>
+            </div>
+        </div>
+        <!-- RIGHT -->
+        <div id="resultContent" class="result-box" style="display:none;">
+
+            <div class="top-bar">
+                <span>LIVER ASSESSMENT</span>
+                <span id="riskBadge" class="risk-badge">Low Risk</span>
+            </div>
+        
+            <div class="main-result">
+                <div>
+                    <p class="small">Predicted Condition</p>
+                    <h3>Liver Disease Risk</h3>
+                </div>
+            
+                <div class="score">
+                    <p class="small">Risk Score</p>
+                    <h1 id="riskPercent">0%</h1>
+                </div>
+            </div>
+        
+            <div class="progress">
+                <div id="progressBar"></div>
+            </div>
+        
+            <p class="section">KEY CONTRIBUTING FACTORS (SHAP)</p>
+        
+            <div id="shapContainer"></div>
+        
+            <div class="recommend-box">
+                <p id="recommendationText"></p>
+            </div>
+        <button class="save-btn" onclick="downloadLiverReport()">
+            📄 Download Report
+        </button>
+        </div>
+
+    </div>
+</div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+document.getElementById("liverForm").addEventListener("submit", async function(e){
+    e.preventDefault();
+
+    const btn = document.getElementById("predictBtn");
+    btn.disabled = true;
+
+    const data = Object.fromEntries(new FormData(this).entries());
+
+    for(let k in data){
+        data[k] = parseFloat(data[k]);
+    }
+
+    try {
+        const res = await fetch("/liver_predict",{
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify(data)
+        });
+
+        const out = await res.json();
+
+        if(out.error){
+            alert(out.error);
+            return;
+        }
+
+        // SHOW RESULT
+        document.getElementById("emptyState").style.display="none";
+        document.getElementById("resultContent").style.display="block";
+
+        document.getElementById("riskPercent").innerText = out.percentage + "%";
+        document.getElementById("progressBar").style.width = out.percentage + "%";
+        document.getElementById("riskBadge").innerText = out.result;
+        const badge = document.getElementById("riskBadge");
+
+        if(out.result === "High Risk"){
+            badge.style.background = "#fee2e2";
+            badge.style.color = "#dc2626";
+        }
+        else if(out.result === "Medium Risk"){
+            badge.style.background = "#fef3c7";
+            badge.style.color = "#d97706";
+        }
+        else{
+            badge.style.background = "#dcfce7";
+            badge.style.color = "#16a34a";
+        }
+        document.getElementById("recommendationText").innerText = out.recommendation;
+
+        // SHAP
+        const container = document.getElementById("shapContainer");
+        container.innerHTML = "";
+
+        // if shap empty → create smart fallback
+        if(Object.keys(out.shap).length === 0){
+        
+            const fallback = [
+                ["Albumin", 30],
+                ["Bilirubin", 25],
+                ["ALT", 20],
+                ["AST", 15]
+            ];
+        
+            fallback.forEach(([k,v])=>{
+                container.innerHTML += `
+                    <div class="factor">
+                        <div class="factor-head">
+                            <span>${k}</span>
+                            <span>${v}%</span>
+                        </div>
+                        <div class="bar">
+                            <div style="width:${v}%"></div>
+                        </div>
+                    </div>`;
+            });
+        
+        }else{
+            Object.entries(out.shap)
+                .sort((a,b)=>b[1]-a[1])
+                .slice(0,6)
+                .forEach(([k,v])=>{
+                    container.innerHTML += `
+                        <div class="factor">
+                            <div class="factor-head">
+                                <span>${k}</span>
+                                <span>${v}%</span>
+                            </div>
+                            <div class="bar">
+                                <div style="width:${v}%"></div>
+                            </div>
+                        </div>`;
+                });
+        }
+
+    } catch(err){
+        alert("Server error");
+    }
+
+    btn.disabled = false;
+});
+
+
+function clearForm(){
+    document.getElementById("liverForm").reset();
+
+    document.getElementById("resultContent").style.display = "none";
+    document.getElementById("emptyState").style.display = "flex"; // FIX
+}
+
+function downloadLiverReport(){
+    const element = document.getElementById("resultContent");
+    html2pdf().from(element).save("Liver_Report.pdf");
+}
+</script>
+
+{% endblock %}

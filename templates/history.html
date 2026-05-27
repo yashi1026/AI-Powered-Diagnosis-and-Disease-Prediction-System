@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}My Dashboard{% endblock %}
+
+{% block css %}
+<style>
+.container {
+    padding: 40px;
+}
+
+.title {
+    font-size: 28px;
+    margin-bottom: 20px;
+}
+
+.card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    background: #f5f7fa;
+    padding: 14px;
+    text-align: left;
+}
+
+td {
+    padding: 14px;
+    border-bottom: 1px solid #eee;
+}
+
+tr:hover {
+    background: #fafafa;
+}
+
+/* BADGES */
+.badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.low {
+    background: #e6f7f5;
+    color: #00a884;
+}
+
+.medium {
+    background: #fff4e5;
+    color: #ff9800;
+}
+
+.high {
+    background: #ffe6e6;
+    color: #e53935;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <div class="title">📊 My Health History</div>
+
+    <div class="card">
+
+        {% if data|length == 0 %}
+            <p>No records yet.</p>
+        {% else %}
+
+        <table>
+            <tr>
+                <th>Date</th>
+                <th>Disease</th>
+                <th>Risk</th>
+                <th>Score</th>
+            </tr>
+
+            {% for row in data %}
+            <tr>
+                <td>{{ row[4] }}</td>
+                <td>{{ row[2] }}</td>
+
+                <td>
+                    {% if row[3] < 30 %}
+                        <span class="badge low">Low</span>
+                    {% elif row[3] < 60 %}
+                        <span class="badge medium">Medium</span>
+                    {% else %}
+                        <span class="badge high">High</span>
+                    {% endif %}
+                </td>
+
+                <td>{{ row[3] }}%</td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

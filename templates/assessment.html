@@ -1,0 +1,240 @@
+{% extends 'base.html' %}
+
+{% block css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/assessment.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<!-- ===== TOP SECTION ===== -->
+<section class="container-fixed">
+
+    <p class="section-tag">HEALTH ASSESSMENT</p>
+
+    <h1 class="section-title">Choose Your Health Assessment</h1>
+
+    <p class="section-desc">
+        Select a disease model or use our AI chatbot to analyze your symptoms.
+        Get fast, ML-powered predictions with explainable insights.
+    </p>
+
+    <!-- CARDS -->
+    <div class="assessment-cards">
+
+        <a href="/diabetes" class="assess-card">
+            <h3>💉 Diabetes</h3>
+            <p>Glucose & metabolic risk analysis</p>
+        </a>
+
+        <a href="/heart" class="assess-card">
+            <h3>❤️ Heart Disease</h3>
+            <p>Cardiovascular risk prediction</p>
+        </a>
+
+        <a href="/liver" class="assess-card">
+            <h3>🧪 Liver Health</h3>
+            <p>Liver function evaluation</p>
+        </a>
+        <a href="/typhoid" class="assess-card">
+            <h3>🦠 Typhoid</h3>
+            <p>Bacterial infection risk analysis</p>
+        </a>
+        
+        <a href="/parkinsons" class="assess-card">
+            <h3>🧠 Parkinson's</h3>
+            <p>Neurological disorder prediction</p>
+        </a>
+
+        <div class="assess-card chatbot-card">
+            <h3>💬 Symptom Checker</h3>
+            <p>Describe symptoms & get AI guidance</p>
+        </div>
+        
+
+    </div>
+
+</section>
+
+<!-- ===== CHATBOT SECTION ===== -->
+<section class="chatbot-section container-fixed">
+
+    <div class="chat-layout">
+
+        <!-- LEFT CHAT -->
+        <div class="chatbot-box">
+
+            <div class="chat-header">
+                <h2>💬 Symptom Checker</h2>
+                <p>Chat-based symptom analysis</p>
+            </div>
+
+            <div class="chat-window" id="chatWindow">
+                <div class="bot-msg">
+                    Hello! I'm MedPredict's symptom screening assistant. What symptoms are you currently experiencing?
+                </div>
+            </div>
+
+            <!-- QUICK SYMPTOMS -->
+            <div class="quick-symptoms" id="symptomContainer">
+
+                <span>Fever</span>
+                <span>Cough</span>
+                <span>Fatigue</span>
+                <span>Shortness of breath</span>
+                <span>Chest pain</span>
+                <span>Headache</span>
+
+                <span>Nausea</span>
+                <span>Vomiting</span>
+                <span>Abdominal pain</span>
+                <span>Dizziness</span>
+                <span>Joint pain</span>
+                <span>Skin rash</span>
+
+                <span>Loss of appetite</span>
+                <span>Night sweats</span>
+                <span>Swelling</span>
+                <span>High blood sugar</span>
+                <span>Frequent urination</span>
+                <span>Blurred vision</span>
+
+            </div>
+
+            <div class="chat-input">
+                <input id="chatInput" type="text" placeholder="Describe your symptoms...">
+                <button onclick="sendMessage()">Analyze</button>
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}
+
+{% block script %}
+<script>
+const selectedSymptoms = [];
+
+// ===== SEND MESSAGE =====
+let userName = "";
+let askingName = false;
+
+async function sendMessage() {
+    const input = document.getElementById("chatInput");
+    const chatWindow = document.getElementById("chatWindow");
+
+    if (!input.value.trim()) return;
+
+    const userText = input.value.toLowerCase();
+
+    // USER MESSAGE
+    const userMsg = document.createElement("div");
+    userMsg.className = "user-msg";
+    userMsg.innerText = input.value;
+    chatWindow.appendChild(userMsg);
+
+    input.value = "";
+
+    // BOT MESSAGE BOX
+    const botMsg = document.createElement("div");
+    botMsg.className = "bot-msg";
+    chatWindow.appendChild(botMsg);
+
+    chatWindow.scrollTo({
+        top: chatWindow.scrollHeight,
+        behavior: "smooth"
+    });
+
+    // ===== GREETING FLOW =====
+    if (userText === "hi" || userText === "hello") {
+        botMsg.innerText = "Hello 👋 What's your name?";
+        askingName = true;
+        return;
+    }
+
+    if (askingName) {
+        userName = input.value;
+        botMsg.innerText = `Nice to meet you, ${userName}! 😊 Tell me your symptoms.`;
+        askingName = false;
+        return;
+    }
+
+    // ===== CALL AI =====
+    try {
+        botMsg.innerText = "Analyzing...";
+
+        const response = await fetch("/chat", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ message: userText })
+        });
+
+        const data = await response.json();
+
+        // FORMAT RESPONSE
+        botMsg.innerHTML = data.reply.replace(/\n/g, "<br>");
+
+        // ===== SMART SYMPTOM SUGGESTION =====
+        let suggestions = [];
+
+        if (userText.includes("cough")) {
+            suggestions.push("Fever", "Shortness of breath");
+        }
+        if (userText.includes("dizziness")) {
+            suggestions.push("Headache", "Nausea");
+        }
+        if (userText.includes("fatigue")) {
+            suggestions.push("Loss of appetite", "Weakness");
+        }
+
+        if (suggestions.length > 0) {
+            const suggestionBox = document.createElement("div");
+            suggestionBox.className = "bot-msg";
+            suggestionBox.innerHTML = `
+                Do you also have:<br>
+                ${suggestions.map(s => "• " + s).join("<br>")}
+            `;
+            chatWindow.appendChild(suggestionBox);
+        }
+
+    } catch (error) {
+        botMsg.innerText = "⚠️ Error connecting to AI";
+    }
+
+    chatWindow.scrollTo({
+        top: chatWindow.scrollHeight,
+        behavior: "smooth"
+    });
+}
+
+
+// ===== MULTI SELECT SYMPTOMS =====
+document.querySelectorAll("#symptomContainer span").forEach(item => {
+
+    item.addEventListener("click", () => {
+
+        let symptom = item.innerText.replace("✓ ", "");
+
+        item.classList.toggle("active");
+
+        if (selectedSymptoms.includes(symptom)) {
+            // REMOVE
+            selectedSymptoms.splice(selectedSymptoms.indexOf(symptom), 1);
+            item.innerText = symptom;
+        } else {
+            // ADD
+            selectedSymptoms.push(symptom);
+            item.innerText = "✓ " + symptom;
+        }
+
+        // UPDATE INPUT FIELD
+        document.getElementById("chatInput").value = selectedSymptoms.join(", ");
+    });
+
+});
+</script>
+{% endblock %}
